@@ -1,15 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import TrajectoryCanvas from "../components/TrajectoryCanvas.jsx";
-import ConfidenceBar from "../components/ConfidenceBar.jsx";
 import s from "../styles/demo.module.css";
-import cs from "../styles/components.module.css";
 import { getRandomTrajectory, predict } from "../api/client.js";
 
-const FPS = 10;
+const FPS = 8;
 
 function buildInput(trajectory) {
-  // trajectory.input is [{x, y}, ...] length 20
-  // compute dx, dy
   const pts = trajectory.input;
   return pts.map((p, i) => {
     const prev = i > 0 ? pts[i - 1] : p;
@@ -17,15 +13,20 @@ function buildInput(trajectory) {
   });
 }
 
-function meanStd(prediction) {
-  if (!prediction) return { ade: null, maxUncertainty: null };
-  const { mean, std, samples } = prediction;
-  // ADE against mean
-  let totalDist = 0;
-  for (const [x, y] of mean) totalDist += Math.sqrt(x * x + y * y);
-  const maxUncertainty = Math.max(...std.map(([sx, sy]) => (sx + sy) / 2));
-  return { maxUncertainty };
-}
+const PHASES = [
+  {
+    key: "input",
+    color: "#22d3ee",
+    label: "Observing",
+    desc: "Watching the last 20 frames of a player's movement. This becomes the model's input.",
+  },
+  {
+    key: "predict",
+    color: "#f97316",
+    label: "Predicting",
+    desc: "Model predicts the next 20 frames. Orange = prediction, dashed green = where they actually went.",
+  },
+];
 
 export default function Demo() {
   const [modelName, setModelName] = useState("transformer");
@@ -38,27 +39,23 @@ export default function Demo() {
   const rafRef = useRef(null);
   const lastRef = useRef(null);
 
-  const totalFrames = trajectory ? trajectory.input.length + trajectory.target.length : 0;
+  const inputLen = trajectory?.input?.length ?? 20;
+  const totalFrames = trajectory ? inputLen + trajectory.target.length : 0;
+  const phase = !trajectory ? null : frame < inputLen ? 0 : 1;
 
-  // animation loop
   useEffect(() => {
     if (!playing || !trajectory) return;
-
     function tick(ts) {
       if (!lastRef.current) lastRef.current = ts;
       if (ts - lastRef.current >= 1000 / FPS) {
         lastRef.current = ts;
-        setFrame((f) => {
-          if (f + 1 >= totalFrames) {
-            setPlaying(false);
-            return f;
-          }
+        setFrame(f => {
+          if (f + 1 >= totalFrames) { setPlaying(false); return f; }
           return f + 1;
         });
       }
       rafRef.current = requestAnimationFrame(tick);
     }
-
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [playing, totalFrames, trajectory]);
@@ -73,9 +70,7 @@ export default function Demo() {
     try {
       const traj = await getRandomTrajectory();
       setTrajectory(traj);
-
-      const inputSeq = buildInput(traj);
-      const pred = await predict(inputSeq, modelName);
+      const pred = await predict(buildInput(traj), modelName);
       setPrediction(pred);
       setPlaying(true);
     } catch (e) {
@@ -85,40 +80,32 @@ export default function Demo() {
     }
   }
 
-  function handleScrub(e) {
-    setPlaying(false);
-    setFrame(Number(e.target.value));
-  }
-
   function replay() {
     setFrame(0);
     lastRef.current = null;
     setPlaying(true);
   }
 
-  const { maxUncertainty } = meanStd(prediction);
-  const confidence = prediction
-    ? Math.max(0, 1 - (maxUncertainty ?? 0) * 20)
+  const maxUncertainty = prediction
+    ? Math.max(...prediction.std.map(([sx, sy]) => (sx + sy) / 2))
+    : null;
+  const confidence = maxUncertainty != null
+    ? Math.round(Math.max(0, Math.min(1, 1 - maxUncertainty * 20)) * 100)
     : null;
 
-  const inputTrack = trajectory?.input;
-  const targetTrack = trajectory?.target;
+  const currentPhase = phase != null ? PHASES[phase] : null;
 
   return (
     <div className={s.page}>
       <div className={s.header}>
         <div>
-          <h1 className={s.title}>Trajectory Prediction</h1>
+          <h1 className={s.title}>Player Trajectory Prediction</h1>
           <p className={s.subtitle}>
-            Load a test sample, watch the model predict the next 20 frames in real time.
+            Given a player's last 20 frames of movement, predict where they go next.
           </p>
         </div>
         <div className={s.controls}>
-          <select
-            className={s.select}
-            value={modelName}
-            onChange={(e) => setModelName(e.target.value)}
-          >
+          <select className={s.select} value={modelName} onChange={e => setModelName(e.target.value)}>
             <option value="transformer">Transformer</option>
             <option value="cnn">TemporalCNN</option>
           </select>
@@ -126,9 +113,7 @@ export default function Demo() {
             {loading ? "Loading..." : "Load Sample"}
           </button>
           {trajectory && !loading && (
-            <button className={s.btnSecondary} onClick={replay}>
-              Replay
-            </button>
+            <button className={s.btnSecondary} onClick={replay}>Replay</button>
           )}
         </div>
       </div>
@@ -139,12 +124,31 @@ export default function Demo() {
         <div className={s.canvasCard}>
           <div className={s.canvasWrap}>
             <TrajectoryCanvas
-              inputTrack={inputTrack}
-              targetTrack={targetTrack}
+              inputTrack={trajectory?.input}
+              targetTrack={trajectory?.target}
               prediction={prediction}
               frameIdx={frame}
             />
-            {playing && <span className={s.playingBadge}>LIVE</span>}
+            {!trajectory && !loading && (
+              <div className={s.emptyOverlay}>
+                <span>Press "Load Sample" to begin</span>
+              </div>
+            )}
+          </div>
+
+          <div className={s.legendRow}>
+            <div className={s.legendItem}>
+              <div className={s.dot} style={{ background: "#22d3ee" }} />
+              <span>Past movement <em>(input)</em></span>
+            </div>
+            <div className={s.legendItem}>
+              <div className={s.dot} style={{ background: "#f97316" }} />
+              <span>Predicted path</span>
+            </div>
+            <div className={s.legendItem}>
+              <div className={s.dot} style={{ background: "#a3e635" }} />
+              <span>Actual path <em>(ground truth)</em></span>
+            </div>
           </div>
 
           {trajectory && (
@@ -153,75 +157,62 @@ export default function Demo() {
               min={0}
               max={totalFrames - 1}
               value={frame}
-              onChange={handleScrub}
+              onChange={e => { setPlaying(false); setFrame(Number(e.target.value)); }}
               style={{ width: "100%", accentColor: "var(--accent)" }}
             />
           )}
-
-          <div className={cs.legend}>
-            <div className={cs.legendItem}>
-              <div className={cs.legendDot} style={{ background: "#22d3ee" }} />
-              Input history
-            </div>
-            <div className={cs.legendItem}>
-              <div className={cs.legendDot} style={{ background: "#a3e635" }} />
-              Ground truth
-            </div>
-            <div className={cs.legendItem}>
-              <div className={cs.legendDot} style={{ background: "#f97316" }} />
-              Prediction
-            </div>
-          </div>
         </div>
 
         <div className={s.sidebar}>
-          <div className={s.card}>
-            <div className={s.cardTitle}>Stats</div>
-            {trajectory ? (
+          <div className={s.phaseCard} style={{ borderColor: currentPhase?.color ?? "var(--border)" }}>
+            <div className={s.phaseLabel} style={{ color: currentPhase?.color ?? "var(--text-secondary)" }}>
+              {currentPhase ? `Phase ${phase + 1}/2: ${currentPhase.label}` : "Ready"}
+            </div>
+            <p className={s.phaseDesc}>
+              {currentPhase
+                ? currentPhase.desc
+                : "Load a sample to see how the model predicts a player's next 20 frames of movement based on their history."}
+            </p>
+          </div>
+
+          {trajectory && (
+            <div className={s.card}>
+              <div className={s.cardTitle}>Playback</div>
               <div className={s.statGrid}>
                 <div className={s.stat}>
                   <span className={s.statLabel}>Frame</span>
-                  <span className={s.statValue}>
-                    {frame}<span className={s.statUnit}>/ {totalFrames - 1}</span>
-                  </span>
+                  <span className={s.statValue}>{frame}<span className={s.statUnit}>/{totalFrames - 1}</span></span>
                 </div>
                 <div className={s.stat}>
-                  <span className={s.statLabel}>Model</span>
+                  <span className={s.statLabel}>Phase</span>
                   <span className={s.statValue} style={{ fontSize: 13 }}>
-                    {modelName === "transformer" ? "Transformer" : "CNN"}
+                    {frame < inputLen ? "Input" : "Predict"}
                   </span>
                 </div>
-                <div className={s.stat}>
-                  <span className={s.statLabel}>Input frames</span>
-                  <span className={s.statValue}>20</span>
-                </div>
-                <div className={s.stat}>
-                  <span className={s.statLabel}>Predicted</span>
-                  <span className={s.statValue}>20<span className={s.statUnit}>frames</span></span>
-                </div>
               </div>
-            ) : (
-              <p className={s.empty}>Load a sample to begin</p>
-            )}
-          </div>
+            </div>
+          )}
 
-          {prediction && (
+          {prediction && confidence != null && (
             <div className={s.card}>
-              <div className={s.cardTitle}>Uncertainty</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <ConfidenceBar
-                  label="Confidence"
-                  value={confidence ?? 0}
-                  max={1}
-                />
-                <ConfidenceBar
-                  label="Max std"
-                  value={maxUncertainty ?? 0}
-                  max={0.05}
+              <div className={s.cardTitle}>Model Confidence</div>
+              <div className={s.confidenceValue} style={{
+                color: confidence > 66 ? "#22d3ee" : confidence > 33 ? "#eab308" : "#f97316"
+              }}>
+                {confidence}%
+              </div>
+              <div className={s.confidenceTrack}>
+                <div
+                  className={s.confidenceFill}
+                  style={{
+                    width: `${confidence}%`,
+                    background: confidence > 66 ? "#22d3ee" : confidence > 33 ? "#eab308" : "#f97316",
+                  }}
                 />
               </div>
-              <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 10 }}>
-                Estimated via {prediction.samples.length} MC dropout passes
+              <p className={s.confidenceNote}>
+                Based on {prediction.samples.length} MC dropout passes.<br />
+                Lower uncertainty = higher confidence.
               </p>
             </div>
           )}
