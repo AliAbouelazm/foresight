@@ -1,0 +1,105 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navBrand {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.navLinks {
+  display: flex;
+  gap: 4px;
+}
+
+.navLink {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+  background: var(--surface-2);
+}
+
+.navLinkActive {
+  color: var(--text-primary);
+  background: var(--surface-2);
+}
+
+/* Confidence bar */
+.confidenceBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.confidenceLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.confidenceTrack {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.confidenceFill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.confidenceLow .confidenceFill {
+  background: #f97316;
+}
+
+.confidenceMedium .confidenceFill {
+  background: #eab308;
+}
+
+.confidenceHigh .confidenceFill {
+  background: #22d3ee;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

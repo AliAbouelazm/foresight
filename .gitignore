@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Data and model artifacts - tracked via Git LFS
+# (tracked: *.pt, *.npy in app/model/checkpoints and app/data/processed)
+
+# Raw data cache (large, not committed)
+backend/app/data/raw_cache/
+
+# Env
+.env
+*.env.local
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
