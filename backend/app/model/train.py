@@ -55,7 +55,7 @@ def train(model_name: str = "transformer") -> None:
         for X_batch, y_batch in train_loader:
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
             optimizer.zero_grad()
-            pred = model(X_batch)
+            pred = model(X_batch, target=y_batch)
             loss = criterion(pred, y_batch)
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -68,7 +68,7 @@ def train(model_name: str = "transformer") -> None:
         with torch.no_grad():
             for X_batch, y_batch in val_loader:
                 X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-                pred = model(X_batch)
+                pred = model(X_batch)   # autoregressive, no teacher forcing
                 val_loss += criterion(pred, y_batch).item() * len(X_batch)
         val_loss /= len(val_ds)
 
