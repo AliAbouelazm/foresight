@@ -1,15 +1,17 @@
 # Foresight
 
-Real-time sports trajectory prediction using deep learning. Given 20 frames of player tracking data, the model predicts the next 20 frames with uncertainty estimates.
+> **Work in progress.** Architecture and training pipeline are functional but the models are still being improved.
+
+Real-time sports trajectory prediction using deep learning. Given 50 frames of player tracking data, the model predicts the next 50 frames.
 
 ## Models
 
 | Model | Architecture | ADE | FDE |
 |---|---|---|---|
-| Transformer | 3-layer TransformerEncoder, d=64 | TBD | TBD |
-| TemporalCNN | 3x Conv1d + global avg pool | TBD | TBD |
+| TemporalCNN | 4x Conv1d, global avg pool | 0.065 | 0.118 |
+| Seq2Seq Transformer | Encoder-decoder, d=128, 4+3 layers | 0.074 | 0.131 |
 
-ADE/FDE are in normalized screen coordinates (0-1 range). Uncertainty is estimated via Monte Carlo dropout (10 passes).
+ADE/FDE in normalized screen coordinates (0-1 range). 50 input frames, 50 predicted frames. Uncertainty via Monte Carlo dropout (10 passes).
 
 ## Stack
 
