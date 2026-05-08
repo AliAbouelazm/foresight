@@ -8,10 +8,10 @@ import torch
 
 PROCESSED_DIR = Path(__file__).parent / "processed"
 
-INPUT_LEN = 20
-TARGET_LEN = 20
-SEQ_LEN = INPUT_LEN + TARGET_LEN  # 40 frames total
-STRIDE = 20  # 50% overlap
+INPUT_LEN = 50
+TARGET_LEN = 50
+SEQ_LEN = INPUT_LEN + TARGET_LEN  # 100 frames total
+STRIDE = 25  # 75% overlap for more windows
 
 
 def _compute_features(coords: np.ndarray) -> np.ndarray:
@@ -29,9 +29,9 @@ def _compute_features(coords: np.ndarray) -> np.ndarray:
 
 def build_windows(trajectories: list) -> tuple[np.ndarray, np.ndarray]:
     """
-    Slide a 40-frame window across each trajectory with STRIDE overlap.
-    Input window: first 20 frames as (20, 4) features.
-    Target window: next 20 frames as (20, 2) coordinates.
+    Slide a 100-frame window across each trajectory with STRIDE overlap.
+    Input window: first 50 frames as (50, 4) features.
+    Target window: next 50 frames as (50, 2) coordinates.
     """
     inputs_list = []
     targets_list = []

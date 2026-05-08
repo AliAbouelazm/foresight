@@ -16,10 +16,10 @@ PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed"
 MODEL_DIR = Path(__file__).parent / "checkpoints"
 HISTORY_PATH = Path(__file__).parent / "training_history.json"
 
-EPOCHS = 60
-BATCH_SIZE = 256
-LR = 1e-3
-PATIENCE = 10
+EPOCHS = 100
+BATCH_SIZE = 128
+LR = 5e-4
+PATIENCE = 12
 
 
 def _load_split(name: str) -> TensorDataset:

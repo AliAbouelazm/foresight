@@ -5,9 +5,9 @@ from pydantic import BaseModel, Field
 class PredictRequest(BaseModel):
     input_sequence: list[list[float]] = Field(
         ...,
-        description="20 timesteps of [x, y, dx, dy] features, shape (20, 4)",
-        min_length=20,
-        max_length=20,
+        description="50 timesteps of [x, y, dx, dy] features, shape (50, 4)",
+        min_length=50,
+        max_length=50,
     )
     model_name: str = Field(default="transformer", pattern="^(cnn|transformer)$")
     mc_passes: int = Field(default=10, ge=1, le=50)

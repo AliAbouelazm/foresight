@@ -43,10 +43,10 @@ def predict_trajectory(req: PredictRequest):
             detail=f"Model '{req.model_name}' has not been trained yet.",
         )
 
-    if len(req.input_sequence) != 20 or any(len(row) != 4 for row in req.input_sequence):
+    if len(req.input_sequence) != 50 or any(len(row) != 4 for row in req.input_sequence):
         raise HTTPException(
             status_code=422,
-            detail="input_sequence must be shape (20, 4).",
+            detail="input_sequence must be shape (50, 4).",
         )
 
     input_arr = np.array(req.input_sequence, dtype=np.float32)

@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 
 CACHE_DIR = Path(__file__).parent / "raw_cache"
-MIN_TRACK_LEN = 30
-MAX_FRAME_GAP = 3
+MIN_TRACK_LEN = 100
+MAX_FRAME_GAP = 5
 
 
 def _parse_mot_file(gt_path: str, im_width: int, im_height: int) -> list:
