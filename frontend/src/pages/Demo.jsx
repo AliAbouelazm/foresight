@@ -135,15 +135,15 @@ export default function Demo() {
           <div className={s.legendRow}>
             <div className={s.legendItem}>
               <div className={s.dot} style={{ background: "#22d3ee" }} />
-              Past movement (input)
-            </div>
-            <div className={s.legendItem}>
-              <div className={s.dot} style={{ background: "#f97316" }} />
-              Predicted path
+              Input (both panels)
             </div>
             <div className={s.legendItem}>
               <div className={s.dot} style={{ background: "#a3e635" }} />
-              Actual path (ground truth)
+              Actual (left panel)
+            </div>
+            <div className={s.legendItem}>
+              <div className={s.dot} style={{ background: "#f97316" }} />
+              Predicted (right panel)
             </div>
           </div>
         </div>
@@ -160,9 +160,9 @@ export default function Demo() {
               {!phase && "How it works"}
             </div>
             <p className={s.phaseDesc}>
-              {phase === "input" && "Building the model's input from the player's last 20 frames of position data."}
-              {phase === "predict" && "Orange = model's prediction. Green = where the player actually went. Compare them."}
-              {!phase && "Load a sample to watch the model predict a player's next 20 frames of movement based on their recent history."}
+              {phase === "input" && "Both panels show the same cyan trail — the player's last 20 frames of movement that the model uses as input."}
+              {phase === "predict" && "Left panel shows where the player actually went (green). Right panel shows what the model predicted (orange). Compare them directly."}
+              {!phase && "Load a sample to see the split-panel comparison: actual path on the left vs model prediction on the right."}
             </p>
           </div>
 

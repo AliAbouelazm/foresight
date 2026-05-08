@@ -95,7 +95,7 @@
 
 .canvasWrap {
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 1;
   border-radius: var(--radius);
   overflow: hidden;
   background: #0b1220;
