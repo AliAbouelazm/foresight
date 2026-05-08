@@ -35,8 +35,8 @@ export function predict(inputSequence, modelName = "transformer", mcPasses = 10)
   });
 }
 
-export function getTrainingHistory() {
-  return request("/model/training-history");
+export function getTrainingHistory(modelName = "cnn") {
+  return request(`/model/training-history?model_name=${modelName}`);
 }
 
 export function getMetrics(modelName = "transformer") {

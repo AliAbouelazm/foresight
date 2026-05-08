@@ -61,10 +61,10 @@ def predict_trajectory(req: PredictRequest):
 
 
 @router.get("/model/training-history", response_model=TrainingHistoryResponse)
-def training_history():
-    history = get_training_history()
+def training_history(model_name: str = "cnn"):
+    history = get_training_history(model_name)
     if history is None:
-        raise HTTPException(status_code=404, detail="No training history found.")
+        raise HTTPException(status_code=404, detail=f"No training history found for '{model_name}'.")
     return TrainingHistoryResponse(**history)
 
 

@@ -14,7 +14,8 @@ from app.model.architecture import build_model
 
 PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed"
 MODEL_DIR = Path(__file__).parent / "checkpoints"
-HISTORY_PATH = Path(__file__).parent / "training_history.json"
+def _history_path(model_name: str) -> Path:
+    return Path(__file__).parent / f"{model_name}_training_history.json"
 
 EPOCHS = 100
 BATCH_SIZE = 128
@@ -100,9 +101,10 @@ def train(model_name: str = "transformer") -> None:
                 break
 
     history["best_val_loss"] = best_val_loss
-    HISTORY_PATH.write_text(json.dumps(history, indent=2))
+    hp = _history_path(model_name)
+    hp.write_text(json.dumps(history, indent=2))
     print(f"\nTraining complete. Best val loss: {best_val_loss:.6f}")
-    print(f"History saved to {HISTORY_PATH}")
+    print(f"History saved to {hp}")
 
 
 if __name__ == "__main__":

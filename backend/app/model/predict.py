@@ -13,7 +13,8 @@ import torch
 from app.model.architecture import build_model
 
 MODEL_DIR = Path(__file__).parent / "checkpoints"
-HISTORY_PATH = Path(__file__).parent / "training_history.json"
+def _history_path(model_name: str) -> Path:
+    return Path(__file__).parent / f"{model_name}_training_history.json"
 MC_PASSES = 10
 
 _cache: dict[str, torch.nn.Module] = {}
@@ -66,9 +67,10 @@ def predict(
     }
 
 
-def get_training_history() -> Optional[dict]:
-    if HISTORY_PATH.exists():
-        return json.loads(HISTORY_PATH.read_text())
+def get_training_history(model_name: str = "transformer") -> Optional[dict]:
+    p = _history_path(model_name)
+    if p.exists():
+        return json.loads(p.read_text())
     return None
 
 
